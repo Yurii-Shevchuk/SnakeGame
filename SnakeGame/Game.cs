@@ -92,6 +92,7 @@ namespace SnakeGame
 
         public void GameLoop()
         {
+            int gameSpeed = 100;
             Position food = GenerateFood();
             PlaceFood(food);
             Console.CursorVisible = false;
@@ -141,12 +142,13 @@ namespace SnakeGame
                     Position increasedSnake = new Position(snakeNewHead.Row, snakeNewHead.Col);
                     Snake.GetSnake.Enqueue(increasedSnake);
                     Score += 100;
+                    gameSpeed--;
                 }
 
                 Position snakeTail = Snake.GetSnake.Dequeue();
                 Console.SetCursorPosition(snakeTail.Col, snakeTail.Row);
                 Console.Write(" ");
-                Thread.Sleep(100);
+                Thread.Sleep(gameSpeed);
             }
         }
     }
