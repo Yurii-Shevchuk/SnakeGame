@@ -24,7 +24,7 @@
             ~-_           _-~          ~-_       _-~
                ~--______-~                ~-___-~");
 
-            Console.WriteLine("Welcome to the snake game, press any key to start playing!");
+            Console.WriteLine("Welcome to the snake game, press any key to start playing! Controls are arrow keys ;)");
             Console.ReadKey(false);
             Console.Clear();
             Game game = new Game(25, 40);
