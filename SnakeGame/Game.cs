@@ -10,8 +10,9 @@ namespace SnakeGame
     {
         private Grid _grid;
         private Snake _snake;
-        private Random _random = new Random();
+        private Random _random;
         private int _score;
+        private List<Position> _obstacles;
         public Game(int height, int width)
         {
             _grid = new Grid(height, width);
@@ -19,23 +20,31 @@ namespace SnakeGame
             _snake = new Snake();
             _snake.Draw();
             _score = 0;
+            _random = new Random();
+            _obstacles = new List<Position>();
         }
 
+        public List<Position> Obstacles => _obstacles;
         public Snake Snake => _snake;
 
         public Grid GameGrid => _grid;
 
         public int Score { get; private set; }
         
-        private Position GenerateFood()
+        private Position CreateFood()
         {
-            Position food;
+            Position food = GeneratePosition();
+            return food;
+        }
+
+        private Position GeneratePosition()
+        {
+            Position position;
             do
             {
-                food = new Position(_random.Next(1, GameGrid.Height-1), _random.Next(1, GameGrid.Width-1));
-
-            } while (_snake.IsObstacle(food));
-            return food;
+                position = new Position(_random.Next(1, GameGrid.Height - 1), _random.Next(1, GameGrid.Width - 1));
+            } while (GameGrid.GetElementAt(position.Col, position.Row) != " ");
+            return position;
         }
 
         private void PlaceFood(Position food)
@@ -90,10 +99,12 @@ namespace SnakeGame
             }
         }
 
+      
+
         public void GameLoop()
         {
             int gameSpeed = 100;
-            Position food = GenerateFood();
+            Position food = CreateFood();
             PlaceFood(food);
             Console.CursorVisible = false;
             bool isGameOver = false;
@@ -133,16 +144,24 @@ namespace SnakeGame
                 if (direction == (int)Directions.up) Console.Write("^");
                 if (direction == (int)Directions.down) Console.Write("v");
 
-                //TODO eating
-                //if else
                 if(snakeNewHead.Col == food.Col && snakeNewHead.Row ==  food.Row)
                 {
-                    food = GenerateFood();
+                    food = CreateFood();
                     PlaceFood(food);
-                    Position increasedSnake = new Position(snakeNewHead.Row, snakeNewHead.Col);
+                    Position increasedSnake = snakeNewHead;
                     Snake.GetSnake.Enqueue(increasedSnake);
                     Score += 100;
-                    gameSpeed--;
+                    if (gameSpeed >= 50)
+                    {
+                        gameSpeed--;
+                    }
+                    Obstacles.Add(Obstacle.GenerateObstacle(GeneratePosition()));
+                    Obstacle.PlaceObstacle(Obstacles.Last());
+                }
+                if(Obstacles.Contains(snakeNewHead))
+                {
+                    isGameOver = true;
+                    break;
                 }
 
                 Position snakeTail = Snake.GetSnake.Dequeue();
