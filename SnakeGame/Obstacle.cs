@@ -6,23 +6,20 @@ using System.Threading.Tasks;
 
 namespace SnakeGame
 {
-    internal class Obstacle
+    internal class Obstacle :IPlacable
     {
-        public Obstacle()
+        private Obstacle()
         {
 
         }
-        public static Position GenerateObstacle(Position position)
+        public static Position CreateAndPlace(Position position)
         {
             Position obstacle = position;
-            return obstacle;
-        }
-        public static void PlaceObstacle(Position obstacle)
-        {
             Console.SetCursorPosition(obstacle.Col, obstacle.Row);
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("+");
             Console.ResetColor();
+            return obstacle;
         }
     }
 }

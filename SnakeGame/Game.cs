@@ -13,6 +13,7 @@ namespace SnakeGame
         private Random _random;
         private int _score;
         private List<Position> _obstacles;
+        private bool _isGameOver;
         public Game(int height, int width)
         {
             _grid = new Grid(height, width);
@@ -22,73 +23,32 @@ namespace SnakeGame
             _score = 0;
             _random = new Random();
             _obstacles = new List<Position>();
+            _isGameOver = false;
         }
 
         public List<Position> Obstacles => _obstacles;
         public Snake Snake => _snake;
-
+        public bool IsGameLost
+        {
+            get;
+            private set;
+        }
         public Grid GameGrid => _grid;
 
         public int Score { get; private set; }
         
-        private Position CreateFood()
-        {
-            Position food = GeneratePosition();
-            return food;
-        }
-
-        private Position GeneratePosition()
-        {
-            Position position;
-            do
-            {
-                position = new Position(_random.Next(1, GameGrid.Height - 1), _random.Next(1, GameGrid.Width - 1));
-            } while (GameGrid.GetElementAt(position.Col, position.Row) != " ");
-            return position;
-        }
-
-        private void PlaceFood(Position food)
-        {
-            Console.SetCursorPosition(food.Col, food.Row);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("$");
-        }
-
         private void DrawScore()
         {
             Console.SetCursorPosition(0, GameGrid.Height + 1);
             Console.Write(Score);
         }
 
-        private int HandleInput(int direction)
-        {
-            if (Console.KeyAvailable)
-            {
-                ConsoleKeyInfo userInput = Console.ReadKey(true);
-                ConsoleKey key = userInput.Key;
-                switch (key)
-                {
-                    case ConsoleKey.LeftArrow:
-                        if (direction != (int)Directions.right) direction = (int)Directions.left;
-                        break;
-                    case ConsoleKey.RightArrow:
-                        if (direction != (int)Directions.left) direction = (int)Directions.right;
-                        break;
-                    case ConsoleKey.UpArrow:
-                        if (direction != (int)Directions.down) direction = (int)Directions.up;
-                        break;
-                    case ConsoleKey.DownArrow:
-                        if (direction != (int)Directions.up) direction = (int)Directions.down;
-                        break;
-                }
-            }
-            return direction;
-        }
+        
 
 
         private bool IsGameOver(Position snakeNewHead)
         {
-            if (Snake.IsObstacle(snakeNewHead)) return true;
+            if (Snake.GetSnake.Contains(snakeNewHead)) return true;
             else if (snakeNewHead.Col <= 0) return true;
             else if (snakeNewHead.Row <= 0) return true;
             else if (snakeNewHead.Row >= GameGrid.Height - 1) return true;
@@ -100,54 +60,31 @@ namespace SnakeGame
         }
 
       
-
+        
         public void GameLoop()
         {
             int gameSpeed = 100;
-            Position food = CreateFood();
-            PlaceFood(food);
+            Position food = Food.CreateAndPlace(GameGrid.GeneratePosition());
             Console.CursorVisible = false;
-            bool isGameOver = false;
-
-
-            Position[] directions = new Position[]
-            {
-                new Position(0, 1), 
-                new Position(0, -1), 
-                new Position(1, 0), 
-                new Position(-1, 0), 
-            };
             int direction = (int)Directions.right;
-            while (!isGameOver)
+            while (!IsGameLost)
             {
                 DrawScore();
-                direction = HandleInput(direction);
+                direction = Snake.HandleMovement(direction);
                 Position snakeHead = Snake.GetSnake.Last();
-                Position nextDirection = directions[direction];
-                Position snakeNewHead = new Position(snakeHead.Row + nextDirection.Row,
-                    snakeHead.Col + nextDirection.Col);
+                Position snakeNewHead = Snake.UpdateHead(direction);
 
                 //-------------------------
-                isGameOver = IsGameOver(snakeNewHead);
+                IsGameLost = IsGameOver(snakeNewHead);
                 //-------------------------
 
-                Console.SetCursorPosition(snakeHead.Col, snakeHead.Row);
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.Write("*");
-                Console.ResetColor();
+                Snake.UpdateBody(snakeHead);
 
-                Snake.GetSnake.Enqueue(snakeNewHead);
-                Console.SetCursorPosition(snakeNewHead.Col, snakeNewHead.Row);
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                if (direction == (int)Directions.right) Console.Write(">");
-                if (direction == (int)Directions.left) Console.Write("<");
-                if (direction == (int)Directions.up) Console.Write("^");
-                if (direction == (int)Directions.down) Console.Write("v");
+                Snake.DrawNewHead(snakeNewHead, direction);
 
                 if(snakeNewHead.Col == food.Col && snakeNewHead.Row ==  food.Row)
                 {
-                    food = CreateFood();
-                    PlaceFood(food);
+                    food = Food.CreateAndPlace(GameGrid.GeneratePosition());
                     Position increasedSnake = snakeNewHead;
                     Snake.GetSnake.Enqueue(increasedSnake);
                     Score += 100;
@@ -155,18 +92,15 @@ namespace SnakeGame
                     {
                         gameSpeed--;
                     }
-                    Obstacles.Add(Obstacle.GenerateObstacle(GeneratePosition()));
-                    Obstacle.PlaceObstacle(Obstacles.Last());
+                    Obstacles.Add(Obstacle.CreateAndPlace(GameGrid.GeneratePosition()));
                 }
                 if(Obstacles.Contains(snakeNewHead))
                 {
-                    isGameOver = true;
+                    IsGameLost = !IsGameLost;
                     break;
                 }
 
-                Position snakeTail = Snake.GetSnake.Dequeue();
-                Console.SetCursorPosition(snakeTail.Col, snakeTail.Row);
-                Console.Write(" ");
+                Snake.EraseTail();
                 Thread.Sleep(gameSpeed);
             }
         }

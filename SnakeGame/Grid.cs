@@ -12,12 +12,14 @@ namespace SnakeGame
         private string[,] _grid;
         private int _width;
         private int _height;
+        private Random _random;
 
         public Grid(int height, int width)
         {
             _grid = GenerateGrid(width, height);
             _width = width;
             _height = height;
+            _random = new Random();
         }
         public string GetElementAt(int x, int y)
         {
@@ -52,7 +54,15 @@ namespace SnakeGame
             return grid;
         }
 
-
+        public Position GeneratePosition()
+        {
+            Position position;
+            do
+            {
+                position = new Position(_random.Next(1, Height - 1), _random.Next(1, Width - 1));
+            } while (GetElementAt(position.Col, position.Row) != " ");
+            return position;
+        }
         public void Draw()
         {
             for (int y = 0; y < Height; y++)
