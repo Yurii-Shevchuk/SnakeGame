@@ -8,16 +8,22 @@ namespace SnakeGame
 {
     internal class Food :IPlacable
     {
-        private Food() { }
-
-        public static Position CreateAndPlace(Position position) 
+        private Position _position;
+        private string _graphics;
+        public Food(Position position, string graphics) 
         {
-            Position food = position;
-            Console.SetCursorPosition(food.Col, food.Row);
+            _position = position;
+            _graphics = graphics;
+        }
+
+        public Position Coordinates => _position;
+        public string Graphics => _graphics;
+        public void Place() 
+        {
+            Console.SetCursorPosition(Coordinates.Col, Coordinates.Row);
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("$");
+            Console.Write(Graphics);
             Console.ResetColor();
-            return food;
         }
     }
 }

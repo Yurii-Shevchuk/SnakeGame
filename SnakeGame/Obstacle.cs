@@ -8,18 +8,22 @@ namespace SnakeGame
 {
     internal class Obstacle :IPlacable
     {
-        private Obstacle()
+        private Position _position;
+        private string _graphics;
+        public Obstacle(Position position, string graphics)
         {
-
+            _position = position;
+            _graphics = graphics;
         }
-        public static Position CreateAndPlace(Position position)
+
+        public Position Coordinates => _position;
+        public string Graphics => _graphics;
+        public void Place()
         {
-            Position obstacle = position;
-            Console.SetCursorPosition(obstacle.Col, obstacle.Row);
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("+");
+            Console.SetCursorPosition(Coordinates.Col, Coordinates.Row);
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.Write(Graphics);
             Console.ResetColor();
-            return obstacle;
         }
     }
 }

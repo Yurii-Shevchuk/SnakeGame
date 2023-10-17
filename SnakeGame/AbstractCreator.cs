@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace SnakeGame
 {
-    internal interface IPlacable
+    internal abstract class AbstractCreator
     {
-        public void Place()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract IPlacable CreatePlacable(Position position, string graphics);
     }
 }

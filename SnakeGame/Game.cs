@@ -12,8 +12,9 @@ namespace SnakeGame
         private Snake _snake;
         private Random _random;
         private int _score;
-        private List<Position> _obstacles;
+        private List<Obstacle> _obstacles;
         private bool _isGameOver;
+        private AbstractCreator[] _creator;
         public Game(int height, int width)
         {
             _grid = new Grid(height, width);
@@ -22,11 +23,17 @@ namespace SnakeGame
             _snake.Draw();
             _score = 0;
             _random = new Random();
-            _obstacles = new List<Position>();
+            _obstacles = new List<Obstacle>();
             _isGameOver = false;
+            _creator = new AbstractCreator[2];
+            _creator[0] = new FoodCreator();
+            _creator[1] = new ObstacleCreator();
         }
 
-        public List<Position> Obstacles => _obstacles;
+        public List<Obstacle> Obstacles => _obstacles;
+
+        public AbstractCreator FoodCreator => _creator[0];
+        public AbstractCreator ObstacleCreator => _creator[1];
         public Snake Snake => _snake;
         public bool IsGameLost
         {
@@ -64,7 +71,8 @@ namespace SnakeGame
         public void GameLoop()
         {
             int gameSpeed = 100;
-            Position food = Food.CreateAndPlace(GameGrid.GeneratePosition());
+            Food food = (Food)FoodCreator.CreatePlacable(GameGrid.GeneratePosition(), "$");
+            food.Place();
             Console.CursorVisible = false;
             int direction = (int)Directions.right;
             while (!IsGameLost)
@@ -82,9 +90,10 @@ namespace SnakeGame
 
                 Snake.DrawNewHead(snakeNewHead, direction);
 
-                if(snakeNewHead.Col == food.Col && snakeNewHead.Row ==  food.Row)
+                if(snakeNewHead.Col == food.Coordinates.Col && snakeNewHead.Row ==  food.Coordinates.Row)
                 {
-                    food = Food.CreateAndPlace(GameGrid.GeneratePosition());
+                    food = (Food)FoodCreator.CreatePlacable(GameGrid.GeneratePosition(), "$");
+                    food.Place();
                     Position increasedSnake = snakeNewHead;
                     Snake.GetSnake.Enqueue(increasedSnake);
                     Score += 100;
@@ -92,9 +101,10 @@ namespace SnakeGame
                     {
                         gameSpeed--;
                     }
-                    Obstacles.Add(Obstacle.CreateAndPlace(GameGrid.GeneratePosition()));
+                    Obstacles.Add((Obstacle)ObstacleCreator.CreatePlacable(GameGrid.GeneratePosition(), "*"));
+                    Obstacles.Last().Place();
                 }
-                if(Obstacles.Contains(snakeNewHead))
+                if(Obstacles.Exists(x => x.Coordinates.Col == snakeNewHead.Col && x.Coordinates.Row == snakeNewHead.Row))
                 {
                     IsGameLost = !IsGameLost;
                     break;
