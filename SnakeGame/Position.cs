@@ -18,5 +18,16 @@ namespace SnakeGame
             _row = row;
             _col = col;
         }
+
+        public static bool operator ==(Position left, Position right)
+        {
+            return left._col == right._col && left._row == right._row;
+        }
+
+        public static bool operator !=(Position left, Position right)
+        {
+            return left._col == right._col && left._row == right._row;
+        }
+
     }
 }

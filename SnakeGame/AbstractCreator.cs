@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace SnakeGame
 {
-    internal abstract class AbstractCreator
+    internal abstract class AbstractCreator<T> where T : IPlacable
     {
-        public abstract IPlacable CreatePlacable(Position position, string graphics);
+        public abstract T CreatePlacable(Position position, string graphics);
     }
 }

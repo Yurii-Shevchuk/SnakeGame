@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SnakeGame
 {
-    internal class ObstacleCreator :AbstractCreator
+    internal class ObstacleCreator :AbstractCreator<Obstacle>
     {
-        public override IPlacable CreatePlacable(Position position, string graphics)
+        public override Obstacle CreatePlacable(Position position, string graphics)
         {
             return new Obstacle(position, graphics);
         }
