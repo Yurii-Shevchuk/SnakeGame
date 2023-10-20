@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace SnakeGame
 {
@@ -24,6 +25,36 @@ namespace SnakeGame
             _isGameOver = false;
             _foodCreator = new FoodCreator();
             _obstacleCreator = new ObstacleCreator();
+            Direction = (int)Directions.right;
+        }
+
+        public Game(int height, int width, string path)
+        {
+            Queue<Position> snake;
+            _grid = new Grid(height, width);
+            _grid.Draw();
+            using (StreamReader reader = new StreamReader(path))
+            using (JsonReader reader2 = new JsonTextReader(reader))
+            {
+                reader2.SupportMultipleContent = true;
+                JsonSerializer serializer = new JsonSerializer { CheckAdditionalContent = false };                 
+                _obstacles = (List<Obstacle>)serializer.Deserialize(reader2, typeof(List<Obstacle>));
+                reader2.Read();
+                snake = (Queue<Position>)serializer.Deserialize(reader2, typeof(Queue<Position>));
+                reader2.Read();
+                Score = (int)serializer.Deserialize(reader2, typeof(int));
+                reader2.Read();
+                Direction = (int)serializer.Deserialize(reader2 , typeof(int));
+            }
+            foreach (var obstacle in _obstacles)
+            {
+                obstacle.Place();
+            }
+            _isGameOver = false;
+            _foodCreator = new FoodCreator();
+            _obstacleCreator = new ObstacleCreator();  
+            _snake = new Snake(snake);
+            _snake.Draw();
         }
 
         public List<Obstacle> Obstacles => _obstacles;
@@ -33,11 +64,16 @@ namespace SnakeGame
         public Snake Snake => _snake;
         public bool IsGameLost
         {
-            get;
-            private set;
+            get => _isGameOver;
+            private set => _isGameOver = value;
         }
         public Grid GameGrid => _grid;
 
+        public int Direction
+        {
+            get;
+            private set;
+        }
         public int Score { get; private set; }
         
         private void DrawScore()
@@ -46,7 +82,47 @@ namespace SnakeGame
             Console.Write(Score);
         }
 
-        
+        private void HandleExit()
+        {
+            int choice = -1;
+            if (Console.KeyAvailable)
+            {
+                ConsoleKeyInfo userInput = Console.ReadKey(true);
+                ConsoleKey key = userInput.Key;
+                if (key == ConsoleKey.Escape)
+                {
+                    Menu exitMenu = new Menu("Do you want to save your progress?", new string[] { "Yes", "No" });
+                    choice = exitMenu.Run();
+                }
+            }
+            if(choice == 0)
+            {
+                SaveGame();
+            }
+            else if(choice == 1)
+            {
+                IsGameLost = true;
+            }
+
+        }
+
+        private void SaveGame()
+        {
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.Formatting = Formatting.Indented;
+
+            using (StreamWriter writer = new StreamWriter("savegame.txt"))
+            using (JsonWriter jsonWriter = new JsonTextWriter(writer))
+            {
+                serializer.Serialize(jsonWriter, Obstacles);
+                serializer.Serialize(jsonWriter, Snake.GetSnake);
+                writer.WriteLine();
+                serializer.Serialize(jsonWriter, Score);
+                writer.WriteLine();
+                serializer.Serialize(jsonWriter, Direction);
+            }
+            IsGameLost = true;
+        }
 
 
         private bool IsGameOver(Position snakeNewHead)
@@ -70,13 +146,13 @@ namespace SnakeGame
             Food food = FoodCreator.CreatePlacable(GameGrid.GeneratePosition(), "$");
             food.Place();
             Console.CursorVisible = false;
-            int direction = (int)Directions.right;
             while (!IsGameLost)
             {
                 DrawScore();
-                direction = Snake.HandleMovement(direction);
+                Direction = Snake.HandleMovement(Direction);
+
                 Position snakeHead = Snake.GetSnake.Last();
-                Position snakeNewHead = Snake.UpdateHead(direction);
+                Position snakeNewHead = Snake.UpdateHead(Direction);
 
                 //-------------------------
                 IsGameLost = IsGameOver(snakeNewHead);
@@ -84,7 +160,7 @@ namespace SnakeGame
 
                 Snake.UpdateBody(snakeHead);
 
-                Snake.DrawNewHead(snakeNewHead, direction);
+                Snake.DrawNewHead(snakeNewHead, Direction);
 
                 if(snakeNewHead == food.Coordinates)
                 {
@@ -107,8 +183,11 @@ namespace SnakeGame
                 }
 
                 Snake.EraseTail();
+                HandleExit();
                 Thread.Sleep(gameSpeed);
             }
+            
+
         }
     }
     public enum Directions

@@ -10,9 +10,9 @@ namespace SnakeGame
     {
         private Position _position;
         private string _graphics;
-        public Obstacle(Position position, string graphics)
+        public Obstacle(Position coordinates, string graphics)
         {
-            _position = position;
+            _position = coordinates;
             _graphics = graphics;
         }
 

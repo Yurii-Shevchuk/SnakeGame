@@ -15,6 +15,11 @@ namespace SnakeGame
             _snake = InitializeSnake(_snake);
         }
 
+        public Snake(Queue<Position> snake)
+        {
+            _snake = snake;
+        }
+    
         public Queue<Position> GetSnake => _snake;
         private Queue<Position> InitializeSnake(Queue<Position> snake)
         {

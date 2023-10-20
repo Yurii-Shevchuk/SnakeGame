@@ -29,7 +29,28 @@
             Console.ReadKey(false);
             Console.ResetColor();
             Console.Clear();
-            Game game = new Game(25, 40);
+            Menu mainMenu = new Menu("Choose a preferable option", new string[] {"New game", "Continue game (if any)"});
+            int choice = mainMenu.Run();
+            Game game;
+            if (choice == 0)
+            {
+                game = new Game(25, 40);
+            }
+            else
+            {
+                try
+                {
+                    game = new Game(25, 40, "savegame.txt");
+                }
+                catch
+                {
+                    Console.WriteLine("No saved games found, press any key to start a new game");
+                    Console.ReadKey(true);
+                    game = new Game(25, 40);
+                }
+            }
+
+
             game.GameLoop();
             Console.Clear();
             Console.WriteLine($"Game over! You scored {game.Score} s-s-s-snake points!");
